@@ -10,8 +10,8 @@ all: $(TARGET)
 $(TARGET): $(OBJS) 
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
 
-#.c.o: 
-#	$(CC) $(CFLAGS) -c  $< -o $@
+.c.o: 
+	$(CC) $(CFLAGS) -c  $< -o $@
 
 $(OBJS): $(HEADERS)
 

@@ -14,11 +14,27 @@ extern char *use;
  *
  * Returns the number of bytes actually copied or -1 if an error occured.
  */
-int
-copynFile(FILE * origin, FILE * destination, int nBytes)
+int copynFile(FILE * origin, FILE * destination, int nBytes)
 {
 	// Complete the function
-	return -1;
+	int nBytesRead=0;
+	int c ,ret;
+	if (origin==NULL ||destination==NULL){ 
+		perror("archivos no existen");
+		return -1;
+	}
+
+	while(((c=getc(origin))!=EOF) && nBytesRead!=nBytes){
+		ret = putc(c,destination);
+		nBytesRead++;
+		if(ret ==EOF){
+			perror("Error en la copia");
+			return -1;
+		}
+
+	}
+
+	return nBytesRead;
 }
 
 /** Loads a string from a file.
@@ -32,11 +48,33 @@ copynFile(FILE * origin, FILE * destination, int nBytes)
  * 
  * Returns: !=NULL if success, NULL if error
  */
-char*
-loadstr(FILE * file)
+char* loadstr(FILE * file)
 {
 	// Complete the function
-	return NULL;
+	char* buffer =NULL;
+	int sizeofFile=0;
+	char c ;
+
+	if (file == NULL){
+		perror("Archivo no existe");
+		return NULL;
+	}
+
+	while ((c=getc(file)!=EOF)) sizeofFile++;
+	if(sizeofFile>0){
+		sizeofFile++; //para '\0'
+
+		buffer = malloc(sizeof(char)*(sizeofFile ));
+
+		fseek(file, -(sizeofFile+1), SEEK_CUR);
+
+		for (int i =0; i< sizeofFile;i++)
+		{
+			buffer[i]= getc(file);
+		}
+	}
+
+	return buffer;
 }
 
 /** Read tarball header and store it in memory.
@@ -48,11 +86,28 @@ loadstr(FILE * file)
  * On success it returns the starting memory address of an array that stores 
  * the (name,size) pairs read from the tar file. Upon failure, the function returns NULL.
  */
-stHeaderEntry*
-readHeader(FILE * tarFile, int *nFiles)
+stHeaderEntry* readHeader(FILE * tarFile, int *nFiles)
 {
+
+	char* buffer;
 	// Complete the function
-	return NULL;
+	stHeaderEntry* array= NULL;
+	int nr_files=0;
+	if(tarFile=NULL) return NULL;
+
+	if (fread(&nr_files, sizeof(int),1,tarFile)==0) return NULL;
+
+	array= malloc(sizeof(stHeaderEntry)*nr_files);
+
+	for (int i =0; i< nr_files;i++)
+	{
+		buffer= loadstr(tarFile);
+		array[i].name=buffer;
+		fread(&array[i].size,sizeof(int),1,tarFile);
+	}
+
+	(*nFiles) =nr_files;
+	return (array);
 }
 
 /** Creates a tarball archive 
@@ -76,11 +131,30 @@ readHeader(FILE * tarFile, int *nFiles)
  * pairs occupy strlen(name)+1 bytes.
  *
  */
-int
-createTar(int nFiles, char *fileNames[], char tarName[])
+int createTar(int nFiles, char *fileNames[], char tarName[])
 {
 	// Complete the function
-	return EXIT_FAILURE;
+	FILE * tarFile = NULL;
+	FILE * inputFile =NULL;
+	stHeaderEntry* array = NULL;
+	int i=0;
+	int nBytes=0;
+	if ((tarFile==fopen(tarName,"w"))==NULL)
+		return EXIT_FAILURE;
+
+	array= malloc(sizeof(stHeaderEntry)*nFiles);
+	nBytes= (nFiles+1)+sizeof(int)+nFiles*sizeof(unsigned int);
+	for (i =0;i<nFiles;i++)
+	{
+		array[i].name= malloc(strlen(fileNames[i])+1);
+		strcpy(array[i].name,fileNames[i]);
+		nBytes+=strlen(fileNames[i])+1;
+	}
+
+	
+
+
+	return EXIT_SUCCESS;
 }
 
 /** Extract files stored in a tarball archive
