@@ -19,18 +19,12 @@ int copynFile(FILE * origin, FILE * destination, int nBytes)
 	// Complete the function
 	int nBytesRead=0;
 	int c ,ret;
-	if (origin==NULL ||destination==NULL){ 
-		perror("archivos no existen");
-		return -1;
-	}
+	if (origin==NULL ||destination==NULL) return -1;
 
 	while(((c=getc(origin))!=EOF) && nBytesRead!=nBytes){
 		ret = putc(c,destination);
 		nBytesRead++;
-		if(ret ==EOF){
-			perror("Error en la copia");
-			return -1;
-		}
+		if(ret ==EOF)	return -1;
 
 	}
 
@@ -55,10 +49,7 @@ char* loadstr(FILE * file)
 	int sizeofFile=0;
 	char c ;
 
-	if (file == NULL){
-		perror("Archivo no existe");
-		return NULL;
-	}
+	if (file == NULL)	return NULL;
 
 	while ((c=getc(file)!=EOF)) sizeofFile++;
 	if(sizeofFile>0){
@@ -66,12 +57,10 @@ char* loadstr(FILE * file)
 
 		buffer = malloc(sizeof(char)*(sizeofFile ));
 
-		fseek(file, -(sizeofFile+1), SEEK_CUR);
+		fseek(file, -sizeofFile, SEEK_CUR);
 
-		for (int i =0; i< sizeofFile;i++)
-		{
-			buffer[i]= getc(file);
-		}
+		int leido = fread(buffer,sizeof(char),sizeofFile,file);
+		if (leido ==0)  return NULL;
 	}
 
 	return buffer;
@@ -93,7 +82,7 @@ stHeaderEntry* readHeader(FILE * tarFile, int *nFiles)
 	// Complete the function
 	stHeaderEntry* array= NULL;
 	int nr_files=0;
-	if(tarFile=NULL) return NULL;
+	if(tarFile==NULL) return NULL;
 
 	if (fread(&nr_files, sizeof(int),1,tarFile)==0) return NULL;
 
@@ -102,8 +91,14 @@ stHeaderEntry* readHeader(FILE * tarFile, int *nFiles)
 	for (int i =0; i< nr_files;i++)
 	{
 		buffer= loadstr(tarFile);
-		array[i].name=buffer;
-		fread(&array[i].size,sizeof(int),1,tarFile);
+		if (buffer==NULL) return NULL;
+
+		array[i].name=malloc(strlen(buffer));
+		strcpy(	array[i].name, buffer);
+
+		int leido = fread(&array[i].size,sizeof(int),1,tarFile);
+		if (leido ==0) return NULL;
+
 	}
 
 	(*nFiles) =nr_files;
@@ -139,19 +134,47 @@ int createTar(int nFiles, char *fileNames[], char tarName[])
 	stHeaderEntry* array = NULL;
 	int i=0;
 	int nBytes=0;
-	if ((tarFile==fopen(tarName,"w"))==NULL)
-		return EXIT_FAILURE;
+	int fileByte =0;
+	if ( (tarFile=fopen(tarName,"w"))  == NULL)	return EXIT_FAILURE;
 
 	array= malloc(sizeof(stHeaderEntry)*nFiles);
-	nBytes= (nFiles+1)+sizeof(int)+nFiles*sizeof(unsigned int);
+
+	//int del numero de fichero + nFiles * int con el numero de bytes de cada fichero
+	nBytes= sizeof(int) +nFiles*sizeof(unsigned int);
+	//+nombre de cada fichero + '\0'
+	for (i=0; i<nFiles;i++)
+	{
+		nBytes+= strlen(fileNames[i])+1;
+	}
+	//copiar datos primero
+	fseek(tarFile,nBytes,SEEK_SET);
+	//copiar archivos
 	for (i =0;i<nFiles;i++)
 	{
+		if((inputFile = fopen(fileNames[i],"r") )== NULL) return EXIT_FAILURE;
+		if ((fileByte= copynFile(inputFile,tarFile,INT_MAX)) == -1) return EXIT_FAILURE;
+		array[i].size=fileByte;
 		array[i].name= malloc(strlen(fileNames[i])+1);
 		strcpy(array[i].name,fileNames[i]);
-		nBytes+=strlen(fileNames[i])+1;
+		fclose(inputFile);
 	}
 
-	
+	//una vez teniendo todos los datos, completamos informaciones 
+	fseek(tarFile,0L,SEEK_SET); //ir al principio para rellenar lo que hemos saltado
+	fwrite(&nFiles,sizeof(int),1,tarFile);
+	for (i=0; i<nFiles;i++)
+	{
+		if (fwrite(array[i].name,strlen(fileNames[i])+1, 1, tarFile) ==0) return EXIT_FAILURE; 
+		if (fwrite(&array[i].size,sizeof(unsigned int), 1, tarFile) ==0) return EXIT_FAILURE; 
+
+	}
+
+	fclose(tarFile);
+
+	//eliminamos la memoria reservado en stHeaderEntry* array 
+	for (i=0; i<nFiles;i++){
+		free(array[i].name);	}
+	free (array);
 
 
 	return EXIT_SUCCESS;
@@ -175,5 +198,37 @@ int
 extractTar(char tarName[])
 {
 	// Complete the function
-	return EXIT_FAILURE;
+	FILE * tarFile = NULL;
+	if((tarFile = fopen(tarName,"r") )== NULL) return EXIT_FAILURE;
+
+	int nFiles=0;
+	int i;
+	int filebytes=0;
+	
+	//obtener informaciones
+	stHeaderEntry* array = readHeader(tarFile,&nFiles);
+
+	if (array==NULL) 
+	{
+		printf("1");
+		return EXIT_FAILURE;
+	}
+
+	for (i=0; i<nFiles;i++)
+	{
+		FILE* outFile= fopen( array[i].name,"w");
+		if(outFile==NULL) return EXIT_FAILURE;
+
+		filebytes= copynFile(tarFile,outFile,array[i].size);
+		printf("%d",filebytes);
+		if (filebytes != array[i].size) return EXIT_FAILURE;
+
+		fclose(outFile);
+
+	}
+
+	fclose(tarFile);
+
+	return EXIT_SUCCESS;
+
 }
