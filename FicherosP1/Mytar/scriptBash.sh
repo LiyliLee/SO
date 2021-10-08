@@ -1,12 +1,15 @@
 #!/bin/bash
 
 #if [ -x FILE ]	True if FILE exists and is executable.
-if [-x mytar]: then echo ""
-else echo "No existe programa ejecutable mytar"
+if [ -x mytar ]; 
+then 
+echo ""
+else 
+echo "No existe programa ejecutable mytar"
 fi
 
 #if[ -d FILE ]	True if FILE exists and is a directory.
-if [-d tmp]: then 
+if [ -d tmp ]; then 
 #rm -r File Remove directories and their contents recursively.
     rm -r tmp
 fi
@@ -27,15 +30,15 @@ head -c 1024 /dev/urandom >file3.dat
 
 mkdir out
 #cp FileOrigen  directorio
-cp filetar.mtar ./tmp/out
+cp filetar.mtar  out
 
 cd out
-../--/mytar -x -f filetar.mtar
+../../mytar -x -f filetar.mtar
 
 diff file1.txt ../file1.txt && diff file2.txt ../file2.txt && diff file3.dat ../file3.dat
 
 
-if [$? -eq 0]:then
+if [ $? -eq 0 ];then
     cd ../..
     echo "Correcto."
 else

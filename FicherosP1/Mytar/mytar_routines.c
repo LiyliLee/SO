@@ -169,14 +169,14 @@ int createTar(int nFiles, char *fileNames[], char tarName[])
 
 	}
 
-	fclose(tarFile);
+	
 
 	//eliminamos la memoria reservado en stHeaderEntry* array 
 	for (i=0; i<nFiles;i++){
 		free(array[i].name);	}
 	free (array);
 
-
+	fclose(tarFile);
 	return EXIT_SUCCESS;
 }
 
@@ -194,11 +194,11 @@ int createTar(int nFiles, char *fileNames[], char tarName[])
  * stored in the data section of the tarball.
  *
  */
-int
-extractTar(char tarName[])
+int extractTar(char tarName[])
 {
 	// Complete the function
 	FILE * tarFile = NULL;
+	FILE* outFile= NULL;
 	if((tarFile = fopen(tarName,"r") )== NULL) return EXIT_FAILURE;
 
 	int nFiles=0;
@@ -216,7 +216,7 @@ extractTar(char tarName[])
 
 	for (i=0; i<nFiles;i++)
 	{
-		FILE* outFile= fopen( array[i].name,"w");
+		outFile= fopen( array[i].name,"w");
 		if(outFile==NULL) return EXIT_FAILURE;
 
 		filebytes= copynFile(tarFile,outFile,array[i].size);
