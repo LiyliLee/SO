@@ -311,8 +311,45 @@ static int my_open(const char *path, struct fuse_file_info *fi)
 static int my_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
 	//COMPLETAR
+    char buffer[BLOCK_SIZE_BYTES];
+    int bytes2Read , totalRead=0;
+    NodeStruct *node = myFileSystem.nodes[fi->fh];
+    fprintf(stderr, "--->>>my_read: path %s, size %zu, offset %jd, fh %"PRIu64"\n", path, size, (intmax_t)offset, fi->fh);
+    // Increase the file size if it is needed
+    if(offset >=(node->fileSize))
+        return 0;
+    if ((node->fileSize-offset)<size)
+    {
+        bytes2Read= node->fileSize-offset;
+    }
+    else
+    {
+        bytes2Read=size;
+    }
+	// Read data
+    while(totalRead< bytes2Read) {
+        int i;
+        int currentBlock, offBlock;
+        
+        if (offset>=node->fileSize)
+            return -EFAULT;
 
-	return 0;
+        currentBlock = node->blocks[offset / BLOCK_SIZE_BYTES];
+        offBlock = offset % BLOCK_SIZE_BYTES;
+
+        if( readBlock(&myFileSystem, currentBlock, &buffer)==-1 ) {
+            fprintf(stderr,"Error reading blocks in my_read\n");
+            return -EIO;
+        }
+
+        for(i = offBlock; (i < BLOCK_SIZE_BYTES) && (totalRead < bytes2Read); i++) {
+            buf[totalRead++] = buffer[i];
+        }
+
+        offset+=i;
+    }
+
+    return totalRead;
 }
 
 /**
