@@ -15,3 +15,5 @@ echo 'This is file 2' > $MPOINT/file2.txt
 ls $MPOINT -la
 read -p "Press enter..."
 
+hexdump virtual-disk -C -s 32768 -n 7
+hexdump virtual-disk -C -s 36864 -n 15
