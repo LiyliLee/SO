@@ -540,9 +540,41 @@ static int my_truncate(const char *path, off_t size)
 static int my_unlink(const char *path)
 {
 	// quitar el fprintf y COMPLETAR
-	fprintf(stderr, "No implementada!!\n");
+	//fprintf(stderr, "No implementada!!\n");
 
-	return -1;
+
+    int idxNode;
+    fprintf(stderr, "--->>>my_unlink: path %s\n", path);
+
+    //Buscar path en el directorio del SF
+    //idxNode = nodo-i del fichero
+    if((idxNode = findFileByName(&myFileSystem, (char *)path + 1)) == -1) {
+        return -ENOENT;
+    }
+
+    //Truncar el fichero utilizando resizeNode
+    if(resizeNode(idxNode, 0) < 0)
+        return -EIO;
+
+    //Marcar la entrada de directorio como libre
+    myFileSystem.directory.files[idxNode].freeFile = true;
+    //Decrementar el contador de ficheros del directorio
+    myFileSystem.directory.numFiles--;
+    //Marcar el nodo-i como libre
+    myFileSystem.nodes[idxNode]->freeNode = true;
+    //Incrementar el contador de nodos-i libres
+    myFileSystem.numFreeNodes++;
+    //Actualizar el directorio en el disco virtual
+    updateDirectory(&myFileSystem);
+    //Actualizar el nodo-i en el disco virtual
+    updateNode(&myFileSystem, idxNode, myFileSystem.nodes[idxNode]);
+    //Liberar la memoria del nodo-i y actualizar la tabla
+    free(myFileSystem.nodes[idxNode]);
+    myFileSystem.nodes[idxNode] = NULL;
+    sync();
+
+    
+	return 0;
 }
 
 struct fuse_operations myFS_operations = {
