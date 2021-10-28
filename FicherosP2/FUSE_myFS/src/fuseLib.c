@@ -553,7 +553,7 @@ static int my_unlink(const char *path)
     }
 
     //Truncar el fichero utilizando resizeNode
-    if(resizeNode(idxNode, 0) < 0)
+    if(resizeNode(myFileSystem.directory.files[idxNode].nodeIdx, 0) < 0)
         return -EIO;
 
     //Marcar la entrada de directorio como libre
