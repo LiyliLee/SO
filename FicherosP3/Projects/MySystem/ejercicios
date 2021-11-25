@@ -1,0 +1,21 @@
+Ejercicio 1: Estudia el código del fichero fork_example.c y responde a las siguientes preguntas:
+
+- ¿Cuántos procesos se crean? Dibuja el árbol de procesos generado
+4 procesos
+i=0     p1
+i=1     p1 p2
+i=2     p1 p2 p3 p4
+- ¿Cuántos procesos hay como máximo simultáneamente activos?
+
+- Durante la ejecución del código, ¿es posible que algún proceso quede en estado zombi? Intenta visualizar esa situación usando la herramienta top e introduciendo llamadas a sleep()
+en el código donde consideres oportuno.
+
+- ¿Cómo cambia el comportamiento si la variable p_heap no se emplaza en el heap mediante
+una llamada a malloc() sino que se declara como una variable global de tipo int?
+
+- ¿Cómo cambia el comportamiento si la llamada a open la realiza cada proceso en lugar de
+una sola vez el proceso original?
+
+- En el código original,¿es posible que alguno de los procesos creados acabe siendo hijo del
+proceso init (PID=1)? Intenta visualizar esa situación mediante top, modificando el código
+proporcionado si es preciso.
