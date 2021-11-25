@@ -1,20 +1,31 @@
 Ejercicio 1: Estudia el código del fichero fork_example.c y responde a las siguientes preguntas:
 
 - ¿Cuántos procesos se crean? Dibuja el árbol de procesos generado
-4 procesos
-i=0     p1
-i=1     p1 p2
-i=2     p1 p2 p3 p4
-- ¿Cuántos procesos hay como máximo simultáneamente activos?
+1 proceso principal p0
+8 proceso fork
+i=0     p1(654)  c2(655)
+i=1     p1(654)  c2->p2(655) c3(656) c4(657)
+i=2     p1(654)  p2(655) c3->p3(656) c4->p4(657) c5(658) c6(659) c7(660) c8(661)
+p1  - p2    -p4     -c8
+            -c6
 
-- Durante la ejecución del código, ¿es posible que algún proceso quede en estado zombi? Intenta visualizar esa situación usando la herramienta top e introduciendo llamadas a sleep()
+    - p3    -c7
+    - c5
+
+- ¿Cuántos procesos hay como máximo simultáneamente activos?
+8
+
+- Durante la ejecución del código, ¿es posible que algún proceso quede en estado zombi? 
+Intenta visualizar esa situación usando la herramienta top e introduciendo llamadas a sleep()
 en el código donde consideres oportuno.
 
 - ¿Cómo cambia el comportamiento si la variable p_heap no se emplaza en el heap mediante
 una llamada a malloc() sino que se declara como una variable global de tipo int?
+No, tiene el mismo comportamiento.
 
 - ¿Cómo cambia el comportamiento si la llamada a open la realiza cada proceso en lugar de
 una sola vez el proceso original?
+Solo guarda el ultimo padre y su hijo, p4 y c8 , si el padre se ejecuta mas lento que el hijo, solo guardo el padre p4
 
 - En el código original,¿es posible que alguno de los procesos creados acabe siendo hijo del
 proceso init (PID=1)? Intenta visualizar esa situación mediante top, modificando el código

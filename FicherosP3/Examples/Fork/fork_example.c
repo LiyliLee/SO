@@ -27,7 +27,7 @@ int main() {
 	file_desc = fdopen(fd,"r+");
 	
 	setvbuf(file_desc,(char*)NULL,_IOLBF, 0);
-	
+
 	for (i=0;i<N;i++) {
 		if ( (pid=fork()) == -1) {
 			printf("ERROR. Process %u could not fork. Exit\n",pid);
