@@ -51,12 +51,12 @@ void* philosopher(void* i)
         /// TRY TO GRAB BOTH FORKS (right and left)
 	//Evitar bloqueos si coge a la vez
 	if(left < right){
-           sem_wait(&forks[right]);
-           sem_wait(&forks[left]);
+            pthread_mutex_lock(&forks[right]);
+            pthread_mutex_lock(&forks[left]);
 	}
         else{
-           sem_wait(&forks[left]);
-           sem_wait(&forks[right]);
+            pthread_mutex_lock(&forks[left]);
+            pthread_mutex_lock(&forks[right]);
         }
 
 
@@ -64,13 +64,13 @@ void* philosopher(void* i)
         
         // PUT FORKS BACK ON THE TABLE
         if(left < right){
-            sem_post(&forks[left]);
-            sem_post(&forks[right]);
+            pthread_mutex_unlock(&forks[left]);
+            pthread_mutex_unlock(&forks[right]);
 
         } 
         else{
-            sem_post(&forks[right]);
-            sem_post(&forks[left]);
+            pthread_mutex_unlock(&forks[right]);
+            pthread_mutex_unlock(&forks[left]);
         }
 
         toSleep(nPhilosopher);
